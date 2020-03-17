@@ -164,14 +164,14 @@
             var onError = function(xhr) {};
 
             var mtlLoader = new THREE.MTLLoader();
-            //mtlLoader.setPath('model/');
+            mtlLoader.setPath('cars/');
             mtlLoader.load(modelName+'.mtl', function(materials) {
 
             materials.preload();
 
             var objLoader = new THREE.OBJLoader();
             objLoader.setMaterials(materials);
-            //objLoader.setPath('model/');
+            objLoader.setPath('cars/');
             objLoader.load(modelName+'.obj', function(object) {
                 
                 let theObject =  unitize (object, targetSize);
