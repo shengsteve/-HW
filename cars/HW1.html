@@ -105,6 +105,8 @@
             }))
             mesh.rotation.x = -Math.PI / 2;
             scene.add(mesh);           
+
+    
             
         }
         function readModel (modelName, targetSize=30) {
@@ -119,14 +121,14 @@
             var onError = function(xhr) {};
 
             var mtlLoader = new THREE.MTLLoader();
-            mtlLoader.setPath('cars/');
+            //mtlLoader.setPath('cars/');
             mtlLoader.load(modelName+'.mtl', function(materials) {
 
             materials.preload();
 
             var objLoader = new THREE.OBJLoader();
             objLoader.setMaterials(materials);
-            objLoader.setPath('cars/');
+            //objLoader.setPath('cars/');
             objLoader.load(modelName+'.obj', function(object) {
                 
                 let theObject =  unitize (object, targetSize);
