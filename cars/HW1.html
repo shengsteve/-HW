@@ -25,13 +25,11 @@
     </div>
 	
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
-    <script src="https://threejs.org/build/three.min.js"></script>
     <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://jyunming-chen.github.io/tutsplus/js/KeyboardState.js"></script>
 	<script src="https://raw.githack.com/mrdoob/three.js/dev/examples/js/loaders/MTLLoader.js"></script>
     <script src="https://raw.githack.com/mrdoob/three.js/dev/examples/js/loaders/OBJLoader.js"></script>
     <script>
-        var camera ,renderer,scene,controls,car,othcam,body,angle=0;
+        var camera,renderer,scene,controls,car,othcam,body,angle=0;
 
         class Cylinderlocal{
 		constructor(x,y,z,rad){
@@ -54,7 +52,6 @@
 
         var path ="map/"
         var format = '.jpg';
-
         var urls = [
             path + 'posy' + format, path + 'posy' + format,
             path + 'posy' + format, path + 'negy' + format,
@@ -98,36 +95,35 @@
             ////////////////////////////////////////////  render
             renderer.autoClear =false;
 
-            /////////////////////////////////////////// light
-            var geometry = new THREE.CylinderBufferGeometry( 5, 5, 20, 32 );
-			var material = new THREE.MeshNormalMaterial( {color: 0x888800} );
-			for(var i=0;i<5;i++){
-			var size =Math.random()*8+4;
-			var geometry = new THREE.CylinderBufferGeometry( size, size, 20, 32 );
-			var material = new THREE.MeshPhongMaterial( {color: 0x888800} );
-			var cylinder = new THREE.Mesh( geometry, material );
-			var posnegx = Math.random() >0.5 ? 1:-1;
-			var posnegz = Math.random() >0.5 ? 1:-1;
-			cylinder.position.set(Math.random()*200*posnegx,10,Math.random()*200*posnegz);
-			if(cylinder.position.x<-10&&cylinder.position.x>-90&&cylinder.position.z<30&&cylinder.position.z>-30){
-                i--;
-            continue;
-			}
-			cylinders.push(new Cylinderlocal(cylinder.position.x,cylinder.position.y,cylinder.position.z,size));
-			scene.add( cylinder );
-			}
+ 
+
+			
+			cylinder = new THREE.Mesh (new THREE.CylinderGeometry(5, 5, 20 ,32),new THREE.MeshNormalMaterial());
+			scene.add(cylinder);
+			cylinder.position.set(-80,10,-40)
+			
+			cylinder2 = new THREE.Mesh (new THREE.CylinderGeometry(5, 5, 30 ,32),new THREE.MeshNormalMaterial());
+			scene.add(cylinder2);
+			cylinder2.position.set(70,10,70)
+			
+			cylinder3 = new THREE.Mesh (new THREE.CylinderGeometry(5, 5, 40 ,32),new THREE.MeshNormalMaterial());
+			scene.add(cylinder3);
+			cylinder3.position.set(-60,10,-90)
+			
+			cylinder4 = new THREE.Mesh (new THREE.CylinderGeometry(5, 5, 50 ,32),new THREE.MeshNormalMaterial());
+			scene.add(cylinder4);
+			cylinder4.position.set(50,10,-100)
 			
 			
-			
-			
-			var light = new THREE.PointLight( 0xffffff, 1, 300 );
-            var light2 = new THREE.PointLight( 0xffffff, 1, 300 );
-            var light3 = new THREE.PointLight( 0xffffff, 1, 300 );
-            var light4 = new THREE.PointLight( 0xffffff, 1, 300 );
-            light.position.set( -80, 100, 0 );
-            light2.position.set( 80, 100, 0 );
-            light3.position.set( 0, 100, 80 );
-            light4.position.set( 0, 100, -80 );
+			/////////////////////////////////////////// light
+			var light = new THREE.PointLight( 0xffffff, 1, 400 );
+            var light2 = new THREE.PointLight( 0xffffff, 1, 400 );
+            var light3 = new THREE.PointLight( 0xffffff, 1, 400 );
+            var light4 = new THREE.PointLight( 0xffffff, 1, 400 );
+            light.position.set( -70, 100, 0 );
+            light2.position.set( 70, 100, 0 );
+            light3.position.set( 0, 100, 70 );
+            light4.position.set( 0, 100, -70 );
             scene.add(light,light2,light3,light4);
 
             ////////////////////////////////////////// texture
@@ -142,10 +138,7 @@
                 map: texture
             }))
             mesh.rotation.x = -Math.PI / 2;
-            scene.add(mesh);
-
-            /////////////////////////////////////// car body
-            
+            scene.add(mesh);           
 
             /////////////////////////////////////// cubemap
             var cubeMap = loadCubemap();
@@ -164,7 +157,7 @@
             var onError = function(xhr) {};
 
             var mtlLoader = new THREE.MTLLoader();
-            //mtlLoader.setPath('model/');
+            // mtlLoader.setPath('model/');
             mtlLoader.load(modelName+'.mtl', function(materials) {
 
             materials.preload();
@@ -212,9 +205,7 @@
 			
 			object.position.x-=4;
 			object.position.y=10;
-
-            
-            
+ 
             return theObject;
             
         }
@@ -241,8 +232,8 @@
             renderer.setViewport(IW/2,0,IW/2,IH);
             othcam.aspect=IW/2/IH;
             othcam.updateProjectionMatrix(); 
-            othcam.position.set(car.position.x,100,car.position.z);
-            othcam.lookAt(car.position);
+            othcam.position.set(0,500,250);
+            othcam.lookAt(0,0,0);
             renderer.render(scene,othcam);          
             
 
