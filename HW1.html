@@ -30,12 +30,41 @@
     <script src="https://raw.githack.com/mrdoob/three.js/dev/examples/js/loaders/OBJLoader.js"></script>
     <script>
         var camera,renderer,scene,controls,car,othcam,body,angle=0;
-
-       
+		
+		class Cylinderlocal{
+		constructor(x,y,z,rad){
+		this.x=x;
+		this.y=y;
+		this.z=z;
+		this.rad=rad;
+	  }
+	} 
+	var cylinders=[];
+		(function() {
+		  Math.clamp = function(val,min,max){
+			return Math.min(Math.max(val,min),max);
+	}})();
+		   
 		
 		init();
         animate();
 	
+		function loadCubemap() {
+		   var path = "map/";
+		   var format = '.jpg';
+		   var urls = [
+			path + 'negx' + format, path + 'posx' + format,
+			path + 'negy' + format, path + 'posy' + format,
+			path + 'negz' + format, path + 'posz' + format
+		   ];
+		   var loader = new THREE.CubeTextureLoader();
+		   loader.setCrossOrigin ('');
+		   var cubeMap = loader.load(urls);
+		   cubeMap.format = THREE.RGBFormat;
+		   return cubeMap;
+		  
+		 }
+
 
         function init(){
             //////////////////////////////////////////  new scene camera
@@ -99,12 +128,15 @@
             texture.repeat.set(1, 1);
             texture.wrapS = THREE.RepeatWrapping;
             texture.wrapT = THREE.RepeatWrapping;
-            mesh = new THREE.Mesh(new THREE.PlaneGeometry(400, 400),
+            mesh = new THREE.Mesh(new THREE.PlaneGeometry(700, 500),
             new THREE.MeshBasicMaterial({
                 map: texture
             }))
             mesh.rotation.x = -Math.PI / 2;
-            scene.add(mesh);           
+            scene.add(mesh);  
+			
+			var cubeMap = loadCubemap();
+			scene.background = cubeMap;
             
         }
         function readModel (modelName, targetSize=30) {
