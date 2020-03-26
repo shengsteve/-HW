@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #info {
+            position: absolute;
+            top: 0px; width: 100%;
+            font-family: Monospace;
+            font-size: 20px;
+            padding: 5px;
+            text-align: center;
+            color: #003333
+        }
+        a {color: purple}
+    </style>
+</head>
+<body>
+    <div id = "info"> 
+        <br>GameProg3JS HW2<br>
+        <br><button id = "toggle"style="width:10%">Music button</button><br>
+     </div>
+     
+   <audio id="collisionsound" style="display:none">
+        <source src="https://jyunming-chen.github.io/game3js/gameHWhelpers/sounds/collision3.wav" type='audio/wav'>
+    </audio>
+   
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+   <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+   <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+   <script>
+        
+		 $("#toggle").click(function(){
+		turn =!turn;
+        });
+		
+		var scene, renderer, camera;
+        var collisionSound,Pucks=[],Walls=[],Lights=[],moveposx = -70,Moves=[],check=0,SW=1,SW2=0;
+        var turn = false;
+
+        
+
+        class Wall{
+                    constructor(sx,sy,sz,px,py,pz,ptx,pty,ptz,nx,ny,nz,mat){
+                        this.move=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),mat);
+                        this.move.position.set(px,py,pz);
+                        this.point=new THREE.Vector3(ptx,pty,ptz);
+                        this.normal=new THREE.Vector3(nx,ny,nz);
+                        scene.add(this.move);
+            }
+
+        }
+		
+		class Puck{
+                    constructor(pnx,pnz,posx,posz,color){
+                    this.puck = new THREE.Mesh (new THREE.CylinderGeometry (8,8,5,32), new THREE.MeshBasicMaterial ({color:color}));
+                    this.pos = new THREE.Vector3(pnx,0,pnz);
+                    this.vel = new THREE.Vector3(posx,0,posz);
+                    this.force = new THREE.Vector3(0,0,0);
+                    scene.add(this.puck);
+                    this.light = new THREE.PointLight(color,1,500);
+                    scene.add(this.light);
+            }
+
+        }
+
+        
+
+
+        function random_color() 
+        {
+        var color ="";
+        for(var i = 0; i <3; i++) {
+        var sub = Math.floor(Math.random() * 256).toString(16);
+        color += (sub.length == 1?"0" + sub : sub);
+        }
+        return"#" + color;
+        }
+
+
+        init();
+        animate();
+
+        function init() {
+
+            collisionSound = document.getElementById ('collisionsound');
+            
+            renderer = new THREE.WebGLRenderer( {antialias:true} );
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            renderer.setSize (width, height);
+            renderer.setClearColor (0x888888);
+            document.body.appendChild (renderer.domElement);
+
+            scene = new THREE.Scene();
+            
+            //puck
+        for(var i = 0; i < 5; i++){
+            var posx =  -70 + (Math.random() * ((70 - (-60)) + 1));
+            var posz =  -70 + (Math.random() * ((70 - (-60)) + 1));
+            var vx =  -70 + (Math.random() * ((70 - (-60)) + 1));
+            var vz =  -70 + (Math.random() * ((70 - (-60)) + 1));
+            var lights = random_color();
+            var puck = new Puck(posx,posz,vx,vz,lights);
+            Pucks.push(puck);
+            
+        }
+        
+            // floor
+        
+            var cubeGeometry = new THREE.BoxGeometry (200,6,200);
+            var cubeMaterial = new THREE.MeshPhongMaterial ({color: 0x888888});
+            cube = new THREE.Mesh (cubeGeometry, cubeMaterial);
+            cube.position.set (0,-5,0);
+            scene.add (cube);
+            
+        
+        ////////////////////////////////////////////// wall
+        
+            var wallMaterial = new THREE.MeshLambertMaterial ({color: 0x444444,opacity:0.2,transparent:true});
+			var wall1 = new Wall(5,50,200, -102.5,5,0, -100,0,0, 1,0,0,wallMaterial);
+			var wall2 = new Wall(5,50,200, 102.5,5,0,  100,0,0, -1,0,0,wallMaterial);
+			var wall3 = new Wall(200,50,5, 0,5,-102.5, 0,0,-100, 0,0,1,wallMaterial);
+			var wall4 = new Wall(200,50,5, 0,5,102.5,  0,0,100, 0,0,-1,wallMaterial);
+            Walls.push(wall1,wall2,wall3,wall4);
+        
+            //////////////////////////////////////////////
+        
+            camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);
+            camera.position.y = 300;
+            camera.position.z = 300;
+            camera.lookAt (new THREE.Vector3(0,0,0));
+
+            controls = new THREE.OrbitControls (camera, renderer.domElement);
+            
+
+            var pointLight = new THREE.PointLight (0xffffff);
+            pointLight.position.set (0,300,200);
+            
+            var light = new THREE.AmbientLight( 0x404040 );
+			light.position.set (0,200,200);
+            scene.add( light );
+            scene.add (pointLight);
+			
+			class Move{
+                    constructor(vel,px,py,pz){
+                    this.move =  new THREE.Mesh(new THREE.BoxGeometry(50,20,10),new THREE.MeshLambertMaterial({color:0x444444}));
+                    this.move.position.set(px,py,pz);
+                    scene.add(this.move);
+                    this.v = vel;
+                    this.normal = new THREE.Vector3(0,0,0);
+                    this.point = new THREE.Vector3(0,0,0);
+            }
+;
+        
+		}
+			class Move2{
+                    constructor(vel,px,py,pz){
+                    this.move =  new THREE.Mesh(new THREE.BoxGeometry(50,10,10),new THREE.MeshLambertMaterial({color:0x444444}));
+                    this.move.position.set(px,py,pz);
+                    scene.add(this.move);
+                    this.v = vel;
+                    this.normal = new THREE.Vector3(0,0,0);
+                    this.point = new THREE.Vector3(0,0,0);
+            }
+;
+        
+		}
+			
+        	var movewall1 = new Move(2,70,10,-60)
+			var movewall2 = new Move2(1,70,10,70);
+            Moves.push(movewall1,movewall2)
+            
+            window.addEventListener ('resize', onWindowResize, false);
+        
+			
+		}
+
+        function onWindowResize () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize (window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            var dps = 1e-3;
+            var dt = 0.05;
+			var cR = 1.0;
+        
+        if(SW==1){
+                Moves[0].move.position.z+=Moves[0].v;
+                if(Moves[0].move.position.z>50) SW=0;
+        }
+        else{
+                Moves[0].move.position.z-=Moves[0].v;
+                if(Moves[0].move.position.z<-50) SW=1;   
+        }
+        if(SW2==1){
+                Moves[1].move.position.x+=Moves[1].v;
+                if(Moves[1].move.position.x>60) SW2=0;
+        }
+        else{
+                Moves[1].move.position.x-=Moves[1].v;
+                if(Moves[1].move.position.x<-60) SW2=1;
+        }
+		
+		
+		for(var i = 0 ; i< 5; i++){
+            Pucks[i].vel.add(Pucks[i].force.clone().multiplyScalar(dt));
+            Pucks[i].pos.add(Pucks[i].vel.clone().multiplyScalar (dt));
+            Pucks[i].puck.position.copy (Pucks[i].pos);
+            Pucks[i].light.position.copy(Pucks[i].pos);
+            Pucks[i].light.position.y+=10;
+        }
+        
+       
+        for(var i = 0 ; i < 5 ; i++ ){
+            for(var j = 0 ; j < 5 ;j++){
+                        if( i == j ) continue;
+                if(Pucks[i].pos.distanceTo(Pucks[j].pos)<20){
+                        let v1 = Pucks[i].vel;
+                    let v2 = Pucks[j].vel;
+                    let x1 = Pucks[i].pos;
+                    let x2 = Pucks[j].pos;
+                    
+                    let v1subv2 = v1.clone().sub(v2);
+                    let v2subv1 = v2.clone().sub(v1);
+                    let x1subx2 = x1.clone().sub(x2);
+                    let x2subx1 = x2.clone().sub(x1);
+                    let dot1 = v1subv2.clone().dot(x1subx2.clone());
+                    let dot2 = v2subv1.clone().dot(x2subx1.clone());
+                    let d1to2 = x1.distanceTo(x2);
+                    let d2to1 = x2.distanceTo(x1);
+                    
+                    let res1 = dot1/(d1to2*d1to2);
+                    let res2 = dot2/(d2to1*d2to1);
+                    
+                    var t = x2subx1.clone().normalize();
+                    let d = (20-d2to1)/2;
+                    Pucks[i].pos.copy(Pucks[i].pos.clone().sub(t.clone().multiplyScalar(d)));
+                    Pucks[j].pos.copy(Pucks[j].pos.clone().add(t.clone().multiplyScalar(d)));
+                    
+                    Pucks[i].vel.copy(v1.clone().sub(x1subx2.clone().multiplyScalar(res1)));
+                    Pucks[j].vel.copy(v2.clone().sub(x2subx1.clone().multiplyScalar(res2)));
+                    }
+            }
+        }
+
+
+		 for(var i = 0 ; i < 5 ;i++){
+                for(var j = 0 ; j < 4 ; j++){
+                        if(Pucks[i].pos.clone().sub(Walls[j].point).dot(Walls[j].normal)<dps+10){
+                        if(turn== true) 
+							collisionSound.play();
+                        
+						var vN = Walls[j].normal.clone().multiplyScalar(Pucks[i].vel.dot(Walls[j].normal));
+                        var vT = Pucks[i].vel.clone().sub(vN);
+                        Pucks[i].vel.copy(vT.add(vN.multiplyScalar(-cR)));
+                        Pucks[i].pos.add(Walls[j].normal.clone().multiplyScalar(15-(Walls[j].normal.clone().dot(Pucks[i].pos.clone().sub(Walls[j].point)))));
+                        
+                    }
+            }
+        }
+        
+        // box collision
+        for(var i = 0 ; i< 2 ; i++){
+                for(var j = 0 ; j< 5 ;j++){
+                    let Rect = makeRect(Moves[i]);
+                    if(collisioncheck(Rect,Pucks[j].puck,10)){
+                    if(check==1){
+                            Moves[i].normal.set(1,0,0);
+                        var lo = Moves[i].move.localToWorld(new THREE.Vector3(25,0,0));
+                        var log = new THREE.Vector3(lo.x,0,0);
+                            Moves[i].point.copy(log);
+							
+                    }
+                    else if (check==2){
+                            Moves[i].normal.set(-1,0,0);
+                        var lo =Moves[i].move.localToWorld(new THREE.Vector3(-25,0,0));
+                        var log = new THREE.Vector3(lo.x,0,0);
+                            Moves[i].point.copy(log);
+							
+                    }
+                    else if (check==3){
+                            Moves[i].normal.set(0,0,1);
+                        var lo =Moves[i].move.localToWorld(new THREE.Vector3(0,0,5));
+                        var log = new THREE.Vector3(0,0,lo.z);
+                            Moves[i].point.copy(log); 
+							
+                    }
+                    else if(check==4){
+                            Moves[i].normal.set(0,0,-1);
+                        var lo =Moves[i].move.localToWorld(new THREE.Vector3(0,0,-5));
+                        var log = new THREE.Vector3(0,0,lo.z);
+                            Moves[i].point.copy(log);
+           		
+                    }
+                        console.log(Moves[i].point);
+                        console.log(Moves[i].normal);
+                        if(turn== true) collisionSound.play();
+
+                        var vN = Moves[i].normal.clone().multiplyScalar(Pucks[j].vel.clone().dot(Moves[i].normal));
+                        var vT = Pucks[j].vel.clone().sub(vN);
+                        Pucks[j].vel.copy(vT.clone().add(vN.clone().multiplyScalar(-cR)));
+                        Pucks[j].pos.add(Moves[i].normal.clone().multiplyScalar(10-(Moves[i].normal.clone().dot(Pucks[j].pos.clone().sub(Moves[i].point)))));            
+                    }
+            }
+        
+        }
+            
+            requestAnimationFrame ( animate );  
+            renderer.render (scene, camera);
+        }
+        function objectCopy (src) {
+            return JSON.parse (JSON.stringify (src));
+        }
+
+        function makeRect(Move) {
+            let Rect = {};
+            Rect.max = Move.move.localToWorld ( new THREE.Vector3(25, 0, -5) );
+            Rect.min = Move.move.localToWorld ( new THREE.Vector3(-25, 0, 5) );
+            return Rect;
+        }	
+
+        function collisioncheck(Move, C, Rad) {
+            const Rad2 = Rad * Rad;
+        let R;
+        R = objectCopy (Move);
+        
+            R.max.x -= C.position.x;  R.max.z -= C.position.z;
+            R.min.x -= C.position.x;  R.min.z -= C.position.z;
+
+
+            if (R.max.x < 0){
+				check=1; 
+            if (R.max.z < 0){     
+                    return ((R.max.x * R.max.x + R.max.z * R.max.z) < Rad2);
+            }
+            else if (R.min.z > 0){ 	 
+                    return ((R.max.x * R.max.x + R.min.z * R.min.z) < Rad2);
+            }
+            else {					 
+                    return(Math.abs(R.max.x) < Rad);
+            }
+        }
+            else if (R.min.x > 0){  	 
+                check=2;
+                if (R.max.z < 0){ 	 
+                    return ((R.min.x * R.min.x + R.max.z * R.max.z) < Rad2);
+            }
+            else if (R.min.z > 0){  	 
+                    return ((R.min.x * R.min.x + R.min.z * R.min.z) < Rad2);
+            }
+            else{ 			 	
+                    return (Math.abs(R.min.x) < Rad);
+            }
+        }
+            else{				
+                if (R.max.z < 0){
+                check = 3; 
+                    return (Math.abs(R.min.z) < Rad);
+            }
+            else if (R.min.z > 0){ 
+                    check = 4;
+                    return (Math.abs(R.max.z) < Rad);
+            }
+            else 				
+                    return(true);
+        }
+        } 	
+   </script>   
+</body>
+</html>
